@@ -24,7 +24,7 @@ spec:
             - name: apmsocketpath
               mountPath: /var/run/datadog
           env:            
-{{if .Values.deployment.configmap }}
+{{if .Values.configmap.enabled }}
   {{- range $k, $v := $.Values.configmap.values }}
             - name: {{$k}}
               valueFrom:
@@ -33,7 +33,7 @@ spec:
                   key: {{$k}}
   {{- end }}
 {{- end }}
-{{if .Values.deployment.secrets }}
+{{if .Values.secrets.enabled }}
   {{- range $k := $.Values.secrets.values }}
             - name: {{$k}}
               valueFrom:

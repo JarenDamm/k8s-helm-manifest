@@ -2,17 +2,17 @@ environment: development
 namespace: default
 serviceName: my-service
 imageTag: abc123
-secrets: 
+secrets:
+  enabled: true
   values: [KEYCLOAK_PASSWORD, KEYCLOAK_USER, POSTGRES_DB, KC_DB_URL, POSTGRES_PASSWORD, POSTGRES_USER ] 
-  #VALID VALUES - service, tools
-  applicationType: service
+  #VALID VALUES - services, tools
+  applicationType: services
 configmap:
+  enabled: true
   values:
     ASPNETCORE_ENVIRONMENT: Development
 deployment:
-  replicas: 1
-  configmap: true
-  secrets: true
+  replicas: 1  
 ingress:
   path: domain/service
 kong:
