@@ -1,0 +1,45 @@
+apiVersion: configuration.konghq.com/v1
+kind: KongIngress
+metadata:
+  name: {{ .Values.serviceName }}-ing
+  namespace: {{ .Values.namespace }}   
+proxy:
+  protocol: https
+  connect_timeout: 10000
+  retries: 10
+  read_timeout: 10000
+  write_timeout: 10000
+route:
+  methods:
+  {{- range $k := $.Values.kong.routes }}
+  - {{$k }}
+  {{- end }}  
+  regex_priority: 0
+  strip_path: false
+  preserve_host: true
+  protocols:
+  - http
+  - https
+---
+apiVersion: configuration.konghq.com/v1
+kind: KongIngress
+metadata:
+  name: {{ .Values.serviceName }}-public-ing
+  namespace: {{ .Values.namespace }}   
+proxy:
+  protocol: https
+  connect_timeout: 10000
+  retries: 10
+  read_timeout: 10000
+  write_timeout: 10000
+route:
+  methods:
+  {{- range $k := $.Values.kong.routes }}
+  - {{$k }}
+  {{- end }}
+  regex_priority: 0
+  strip_path: false
+  preserve_host: true
+  protocols:
+  - http
+  - https
