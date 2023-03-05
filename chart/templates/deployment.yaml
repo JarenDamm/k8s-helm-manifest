@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.serviceName }}
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.deployment.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.serviceName }}
+  template:
+    spec:
+      volumes:
+        - hostPath:
+            path: /var/run/datadog/
+          name: apmsocketpath
+      automountServiceAccountToken: false
+      containers:
+        - name: app
+          image: acrbreezesoahub.azurecr.io/{{ .Values.serviceName }}:{{ .Values.imageTag }}
+          ports:
+          - containerPort: 8080
+          volumeMounts:
+            - name: apmsocketpath
+              mountPath: /var/run/datadog
+          env:            
+{{if .Values.deployment.configmap }}
+  {{- range $k, $v := $.Values.configmap.values }}
+            - name: {{$k}}
+              valueFrom:
+                configmapKeyRef:
+                  name: {{ $.Values.serviceName }}
+                  key: {{$k}}
+  {{- end }}
+{{- end }}
+{{if .Values.deployment.secrets }}
+  {{- range $k := $.Values.secrets.values }}
+            - name: {{$k}}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $.Values.serviceName }}
+                  key: {{$k}}
+  {{- end }}
+{{- end }}
+            - name: DD_ENV
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['tags.datadoghq.com/env']
+            - name: DD_SERVICE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['tags.datadoghq.com/service']
+            - name: DD_VERSION
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['tags.datadoghq.com/version']
+            - name: DD_LOGS_INJECTION
+              value: "true"
+            - name: DD_RUNTIME_METRICS_ENABLED
+              value: "true"
+          readinessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 35
+          livenessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 35
+          securityContext:
+            seccompProfile:
+              type: RuntimeDefault
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 10010
+            runAsGroup: 2001
+            capabilities:
+              drop:
+              - NET_RAW
+              - ALL
+          resources:
+            requests:
+              cpu: 20m
+              memory: 128Mi
+            limits:
+              cpu: 25m
+              memory: 256Mi

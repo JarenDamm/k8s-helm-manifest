@@ -1,0 +1,44 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    konghq.com/preserve-host: "true"
+    kubernetes.io/ingress.class: kong
+    configuration.konghq.com: "kong-configuration"
+    plugins.konghq.com: jwt
+  name: {{ .Values.serviceName }}-ing 
+  namespace: {{ .Values.namespace }} 
+spec:
+  rules:
+  - host: <path:argo/data/{{ .Values.environment }}/shared/#API_HOSTNAME>
+    http:
+      paths:
+      - pathType: Prefix
+        path: /{{ .Values.ingress.path }}/secured/*
+        backend:
+          service:
+            name: {{ .Values.serviceName }}
+            port:
+              number: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    konghq.com/preserve-host: "true"
+    kubernetes.io/ingress.class: kong
+    configuration.konghq.com: "kong-configuration"
+  name: {{ .Values.serviceName }}-public-ing
+  namespace: {{ .Values.namespace }} 
+spec:
+  rules:
+  - host: <path:argo/data/{{ .Values.environment }}/shared/#API_HOSTNAME>
+    http:
+      paths:
+      - pathType: Prefix
+        path: /{{ .Values.ingress.path }}/
+        backend:
+          service:
+            name: {{ .Values.serviceName }}
+            port:
+              number: 8080
