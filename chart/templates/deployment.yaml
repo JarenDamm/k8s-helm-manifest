@@ -103,16 +103,9 @@ spec:
           - name: DD_RUNTIME_METRICS_ENABLED
             value: "true"
 {{- end }}
-        readinessProbe:
-          tcpSocket:
-            port: 8080
-          initialDelaySeconds: 15
-          periodSeconds: 35
-        livenessProbe:
-          tcpSocket:
-            port: 8080
-          initialDelaySeconds: 15
-          periodSeconds: 35
+{{- if .Values.probe.enabled }}
+        {{- toYaml .Values.probe.values | nindent 8 }}
+{{- end }}
         securityContext:
           seccompProfile:
             type: RuntimeDefault
@@ -126,10 +119,5 @@ spec:
             - ALL
 {{- if .Values.resources.enabled }}
         resources:
-          requests:
-            cpu: {{ .Values.resources.requests.cpu }}
-            memory: {{ .Values.resources.requests.memory }}
-          limits:
-            cpu: {{ .Values.resources.limits.cpu }}
-            memory: {{ .Values.resources.limits.memory }}
+          {{- toYaml .Values.resources.values | nindent 10 }}
 {{- end }}

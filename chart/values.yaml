@@ -25,10 +25,24 @@ labels:
   tags.datadoghq.com/service: my-service
   tags.datadoghq.com/version: 8675309JG
 resources:
-  enabled: false
-  requests:
-    cpu: 20m
-    memory: 128Mi
-  limits:
-    cpu: 25m
-    memory: 256Mi
+  enabled: true
+  values:
+    requests:
+      cpu: 20m
+      memory: 128Mi
+    limits:
+      cpu: 25m
+      memory: 256Mi
+probe:
+  enabled: true
+  values:
+    readinessProbe:
+      tcpSocket:
+        port: 8080
+      initialDelaySeconds: 15
+      periodSeconds: 35
+    livenessProbe:
+      tcpSocket:
+        port: 8080
+      initialDelaySeconds: 15
+      periodSeconds: 35
