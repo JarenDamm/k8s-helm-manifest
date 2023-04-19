@@ -2,7 +2,7 @@ apiVersion: configuration.konghq.com/v1
 kind: KongIngress
 metadata:
   name: {{ .Values.serviceName }}-ing
-  namespace: {{ .Values.namespace }}   
+  namespace: {{ .Values.namespace }}
 proxy:
   protocol: https
   connect_timeout: 10000
@@ -11,9 +11,13 @@ proxy:
   write_timeout: 10000
 route:
   methods:
-  {{- range $k := $.Values.kong.routes }}
+{{- $routeList := .Values.kong.routes }}
+{{- if not $routeList }}
+  {{- $routeList = list "GET" }}
+{{- end }}
+  {{- range $k := $routeList  }}
   - {{$k }}
-  {{- end }}  
+  {{- end }}
   regex_priority: 0
   strip_path: false
   preserve_host: true
@@ -25,7 +29,7 @@ apiVersion: configuration.konghq.com/v1
 kind: KongIngress
 metadata:
   name: {{ .Values.serviceName }}-public-ing
-  namespace: {{ .Values.namespace }}   
+  namespace: {{ .Values.namespace }}
 proxy:
   protocol: https
   connect_timeout: 10000
@@ -34,7 +38,11 @@ proxy:
   write_timeout: 10000
 route:
   methods:
-  {{- range $k := $.Values.kong.routes }}
+{{- $routeList := .Values.kong.routes }}
+{{- if not $routeList }}
+  {{- $routeList = list "GET" }}
+{{- end }}
+  {{- range $k := $routeList  }}
   - {{$k }}
   {{- end }}
   regex_priority: 0

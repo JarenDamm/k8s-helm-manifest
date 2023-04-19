@@ -3,86 +3,133 @@ kind: Deployment
 metadata:
   name: {{ .Values.serviceName }}
   namespace: {{ .Values.namespace }}
+{{- if .Values.deployment.datadog }}
+  labels:
+    {{- template "2TabLabels" . }}
+{{- end }}
 spec:
-  replicas: {{ .Values.deployment.replicas }}
+  replicas: {{ .Values.deployment.replicas | default 1}}
   selector:
     matchLabels:
       app: {{ .Values.serviceName }}
   template:
+{{- if .Values.deployment.datadog }}
+    metadata:
+      labels:
+        app: {{ .Values.serviceName }}
+        {{- template "4TabLabels" . }}
+{{- end }}
     spec:
+{{- if .Values.deployment.datadog }}
       volumes:
         - hostPath:
             path: /var/run/datadog/
           name: apmsocketpath
+{{- end }}
       automountServiceAccountToken: false
       containers:
-        - name: app
-          image: acrbreezesoahub.azurecr.io/{{ .Values.serviceName }}:{{ .Values.imageTag }}
-          ports:
-          - containerPort: 8080
-          volumeMounts:
-            - name: apmsocketpath
-              mountPath: /var/run/datadog
-          env:            
-{{if .Values.configmap.enabled }}
-  {{- range $k, $v := $.Values.configmap.values }}
-            - name: {{$k}}
-              valueFrom:
-                configmapKeyRef:
-                  name: {{ $.Values.serviceName }}
-                  key: {{$k}}
-  {{- end }}
+{{- if .Values.hazelcast.enabled }}
+      - name: hazelcast
+        image: hazelcast/hazelcast:5.1.3
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: JAVA_OPTS
+          value: >-
+            -Dhazelcast.shutdownhook.policy=GRACEFUL
+            -Dhazelcast.graceful.shutdown.max.wait=600
+        - name: HZ_NETWORK_JOIN_MULTICAST_ENABLED
+          value: "false"
+        - name: HZ_NETWORK_JOIN_KUBERNETES_NAMESPACE
+          value: {{ .Values.namespace }}
+        - name: HZ_NETWORK_JOIN_KUBERNETES_SERVICENAME
+          value: {{ .Values.serviceName }}
+        - name: HZ_NETWORK_JOIN_KUBERNETES_ENABLED
+          value: "true"
+        - name: HZ_NETWORK_PORT_PORT
+          value: "5701"
+        - name: HZ_NETWORK_PORT_PORTCOUNT
+          value: "20"
+        - name: HZ_NETWORK_PORT_AUTOINCREMENT
+          value: "true"
+        - name: HZ_INTEGRITYCHECKER_ENABLED
+          value: "true"
+        ports:
+        - name: hazelcast
+          containerPort: 5701
 {{- end }}
-{{if .Values.secrets.enabled }}
-  {{- range $k := $.Values.secrets.values }}
-            - name: {{$k}}
-              valueFrom:
-                secretKeyRef:
-                  name: {{ $.Values.serviceName }}
-                  key: {{$k}}
-  {{- end }}
+      - name: app
+        image: acrbreezesoahub.azurecr.io/{{ .Values.serviceName }}:{{ .Values.imageTag }}
+        ports:
+        - containerPort: 8080
+{{- if .Values.deployment.datadog }}
+        volumeMounts:
+          - name: apmsocketpath
+            mountPath: /var/run/datadog
 {{- end }}
-            - name: DD_ENV
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.labels['tags.datadoghq.com/env']
-            - name: DD_SERVICE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.labels['tags.datadoghq.com/service']
-            - name: DD_VERSION
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.labels['tags.datadoghq.com/version']
-            - name: DD_LOGS_INJECTION
-              value: "true"
-            - name: DD_RUNTIME_METRICS_ENABLED
-              value: "true"
-          readinessProbe:
-            tcpSocket:
-              port: 8080
-            initialDelaySeconds: 15
-            periodSeconds: 35
-          livenessProbe:
-            tcpSocket:
-              port: 8080
-            initialDelaySeconds: 15
-            periodSeconds: 35
-          securityContext:
-            seccompProfile:
-              type: RuntimeDefault
-            allowPrivilegeEscalation: false
-            runAsNonRoot: true
-            runAsUser: 10010
-            runAsGroup: 2001
-            capabilities:
-              drop:
-              - NET_RAW
-              - ALL
-          resources:
-            requests:
-              cpu: 20m
-              memory: 128Mi
-            limits:
-              cpu: 25m
-              memory: 256Mi
+        env:
+{{- if .Values.configmap.enabled }}
+{{- range $k, $v := $.Values.configmap.values }}
+          - name: {{$k}}
+            valueFrom:
+              configmapKeyRef:
+                name: {{ $.Values.serviceName }}
+                key: {{$k}}
+{{- end }}
+{{- end }}
+{{- if .Values.secrets.enabled }}
+{{- range $k := $.Values.secrets.values }}
+          - name: {{$k}}
+            valueFrom:
+              secretKeyRef:
+                name: {{ $.Values.serviceName }}
+                key: {{$k}}
+{{- end }}
+{{- end }}
+{{- if .Values.deployment.datadog }}
+          - name: DD_ENV
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.labels['tags.datadoghq.com/env']
+          - name: DD_SERVICE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.labels['tags.datadoghq.com/service']
+          - name: DD_VERSION
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.labels['tags.datadoghq.com/version']
+          - name: DD_LOGS_INJECTION
+            value: "true"
+          - name: DD_RUNTIME_METRICS_ENABLED
+            value: "true"
+{{- end }}
+        readinessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 35
+        livenessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 35
+        securityContext:
+          seccompProfile:
+            type: RuntimeDefault
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 10010
+          runAsGroup: 2001
+          capabilities:
+            drop:
+            - NET_RAW
+            - ALL
+{{- if .Values.resources.enabled }}
+        resources:
+          requests:
+            cpu: {{ .Values.resources.requests.cpu }}
+            memory: {{ .Values.resources.requests.memory }}
+          limits:
+            cpu: {{ .Values.resources.limits.cpu }}
+            memory: {{ .Values.resources.limits.memory }}
+{{- end }}

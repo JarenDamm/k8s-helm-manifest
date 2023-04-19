@@ -60,3 +60,22 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Label formatter for 2 tabs
+*/}}
+{{- define "2TabLabels" -}}
+  {{- range $key, $value := .Values.labels }}
+    {{ $key }}: {{ $value }}
+{{- end }}
+{{- end }}
+
+{{/*
+Label formatter for 4 tabs
+*/}}
+{{- define "4TabLabels" -}}
+  {{- range $key, $value := .Values.labels }}
+        {{ $key }}: {{ $value }}
+{{- end }}
+{{- end }}
+

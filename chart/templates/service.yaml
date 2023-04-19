@@ -5,6 +5,11 @@ metadata:
   namespace: {{ .Values.namespace }}
 spec:
   ports:
+{{- if .Values.hazelcast.enabled }}
+  - name: hazelcast
+    port: 5701
+    targetPort: 5701
+{{- end }}
   - name: http
     port: 8080
     protocol: TCP
