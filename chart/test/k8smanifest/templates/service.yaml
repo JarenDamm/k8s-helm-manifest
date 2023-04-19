@@ -1,0 +1,19 @@
+---
+# Source: k8smanifest/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-service
+  namespace: default
+spec:
+  ports:
+  - name: hazelcast
+    port: 5701
+    targetPort: 5701
+  - name: http
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: my-service
+  type: ClusterIP

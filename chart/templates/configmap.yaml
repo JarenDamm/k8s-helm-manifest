@@ -5,7 +5,5 @@ metadata:
   name: {{ .Values.serviceName }}
   namespace: {{ .Values.namespace }}
 data:
-{{- range $k, $v := $.Values.configmap.values }}
-  {{$k}}: {{$v}}
-{{- end }}
+{{- toYaml .Values.configmap.values | nindent 2 }}
 {{- end }}

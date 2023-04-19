@@ -1,3 +1,5 @@
+---
+# Source: k8smanifest/templates/ingress.yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -6,21 +8,22 @@ metadata:
     kubernetes.io/ingress.class: kong
     configuration.konghq.com: "kong-configuration"
     plugins.konghq.com: jwt
-  name: {{ .Values.serviceName }}-ing
-  namespace: {{ .Values.namespace }}
+  name: my-service-ing 
+  namespace: default 
 spec:
   rules:
-  - host: <path:argo/data/{{ .Values.environment }}/shared/#API_HOSTNAME>
+  - host: <path:argo/data/development/shared/#API_HOSTNAME>
     http:
       paths:
       - pathType: Prefix
-        path: /{{ .Values.ingress.path }}/secured/*
+        path: /domain/service/secured/*
         backend:
           service:
-            name: {{ .Values.serviceName }}
+            name: my-service
             port:
               number: 8080
 ---
+# Source: k8smanifest/templates/ingress.yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -28,17 +31,17 @@ metadata:
     konghq.com/preserve-host: "true"
     kubernetes.io/ingress.class: kong
     configuration.konghq.com: "kong-configuration"
-  name: {{ .Values.serviceName }}-public-ing
-  namespace: {{ .Values.namespace }}
+  name: my-service-public-ing
+  namespace: default 
 spec:
   rules:
-  - host: <path:argo/data/{{ .Values.environment }}/shared/#API_HOSTNAME>
+  - host: <path:argo/data/development/shared/#API_HOSTNAME>
     http:
       paths:
       - pathType: Prefix
-        path: /{{ .Values.ingress.path }}/
+        path: /domain/service/
         backend:
           service:
-            name: {{ .Values.serviceName }}
+            name: my-service
             port:
               number: 8080
