@@ -8,8 +8,8 @@ metadata:
     kubernetes.io/ingress.class: kong
     configuration.konghq.com: "kong-configuration"
     plugins.konghq.com: jwt
-  name: my-service-ing 
-  namespace: default 
+  name: my-service-ing
+  namespace: default
 spec:
   rules:
   - host: <path:argo/data/development/shared/#API_HOSTNAME>
@@ -32,7 +32,7 @@ metadata:
     kubernetes.io/ingress.class: kong
     configuration.konghq.com: "kong-configuration"
   name: my-service-public-ing
-  namespace: default 
+  namespace: default
 spec:
   rules:
   - host: <path:argo/data/development/shared/#API_HOSTNAME>

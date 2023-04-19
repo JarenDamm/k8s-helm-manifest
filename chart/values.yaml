@@ -17,7 +17,7 @@ deployment:
 ingress:
   path: domain/service
 kong:
-  routes: []
+  routes: [GET,PUT]
 hazelcast:
   enabled: true
 labels:
