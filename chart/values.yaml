@@ -11,6 +11,13 @@ configmap:
   enabled: true
   values:
     ASPNETCORE_ENVIRONMENT: Development
+volumes:
+  enabled: true
+kafka:
+  enabled: true
+  keys: [KAFKA_BOOTSTRAP, KAFKA_CA_CERT_PATH, KAFKA_USER_CERT_PATH, KAFKA_USER_KEY_CERT_PATH]
+  kafkaUser: kafka-user
+  server: kafka-development-kafka-bootstrap.kafka-development:9093
 deployment:
   replicas: 5
   datadog: true

@@ -20,11 +20,18 @@ spec:
         {{- template "4TabLabels" . }}
 {{- end }}
     spec:
-{{- if .Values.deployment.datadog }}
+{{- if .Values.volumes.enabled }}
       volumes:
+{{- if .Values.deployment.datadog }}
         - hostPath:
             path: /var/run/datadog/
           name: apmsocketpath
+{{- end }}
+{{- if .Values.kafka.enabled }}
+        - name: kafka-{{ .Values.kafka.kafkaUser }}
+          secret:
+            secretName: {{ .Values.kafka.kafkaUser }}
+{{- end }}
 {{- end }}
       automountServiceAccountToken: false
       containers:
@@ -61,14 +68,30 @@ spec:
         image: acrbreezesoahub.azurecr.io/{{ .Values.serviceName }}:{{ .Values.imageTag }}
         ports:
         - containerPort: 8080
-{{- if .Values.deployment.datadog }}
+{{- if .Values.volumes.enabled }}
         volumeMounts:
+{{- if .Values.deployment.datadog }}
           - name: apmsocketpath
             mountPath: /var/run/datadog
+{{- end }}
+{{- if .Values.kafka.enabled }}
+          - name: kafka-{{ .Values.kafka.kafkaUser }}
+            readOnly: true
+            mountPath: /usr/secrets/kafka/certs
+{{- end }}
 {{- end }}
         env:
 {{- if .Values.configmap.enabled }}
 {{- range $k, $v := $.Values.configmap.values }}
+          - name: {{$k}}
+            valueFrom:
+              configmapKeyRef:
+                name: {{ $.Values.serviceName }}
+                key: {{$k}}
+{{- end }}
+{{- end }}
+{{- if .Values.kafka.enabled }}
+{{- range $k := $.Values.kafka.keys }}
           - name: {{$k}}
             valueFrom:
               configmapKeyRef:

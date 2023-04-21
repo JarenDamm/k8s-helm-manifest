@@ -26,6 +26,9 @@ spec:
         - hostPath:
             path: /var/run/datadog/
           name: apmsocketpath
+        - name: kafka-kafka-user
+          secret:
+            secretName: kafka-user
       automountServiceAccountToken: false
       containers:
       - name: hazelcast
@@ -62,12 +65,35 @@ spec:
         volumeMounts:
           - name: apmsocketpath
             mountPath: /var/run/datadog
+          - name: kafka-kafka-user
+            readOnly: true
+            mountPath: /usr/secrets/kafka/certs
         env:
           - name: ASPNETCORE_ENVIRONMENT
             valueFrom:
               configmapKeyRef:
                 name: my-service
                 key: ASPNETCORE_ENVIRONMENT
+          - name: KAFKA_BOOTSTRAP
+            valueFrom:
+              configmapKeyRef:
+                name: my-service
+                key: KAFKA_BOOTSTRAP
+          - name: KAFKA_CA_CERT_PATH
+            valueFrom:
+              configmapKeyRef:
+                name: my-service
+                key: KAFKA_CA_CERT_PATH
+          - name: KAFKA_USER_CERT_PATH
+            valueFrom:
+              configmapKeyRef:
+                name: my-service
+                key: KAFKA_USER_CERT_PATH
+          - name: KAFKA_USER_KEY_CERT_PATH
+            valueFrom:
+              configmapKeyRef:
+                name: my-service
+                key: KAFKA_USER_KEY_CERT_PATH
           - name: KEYCLOAK_PASSWORD
             valueFrom:
               secretKeyRef:

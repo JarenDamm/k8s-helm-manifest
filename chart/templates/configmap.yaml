@@ -7,3 +7,9 @@ metadata:
 data:
 {{- toYaml .Values.configmap.values | nindent 2 }}
 {{- end }}
+{{- if .Values.kafka.enabled }}
+  KAFKA_BOOTSTRAP: {{ .Values.kafka.server}}
+  KAFKA_CA_CERT_PATH: /usr/secrets/kafka/certs/ca.crt
+  KAFKA_USER_CERT_PATH: /usr/secrets/kafka/certs/user.crt
+  KAFKA_USER_KEY_CERT_PATH: /usr/secrets/kafka/certs/user.key
+{{- end }}

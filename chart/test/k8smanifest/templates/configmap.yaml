@@ -7,3 +7,7 @@ metadata:
   namespace: default
 data:
   ASPNETCORE_ENVIRONMENT: Development
+  KAFKA_BOOTSTRAP: kafka-development-kafka-bootstrap.kafka-development:9093
+  KAFKA_CA_CERT_PATH: /usr/secrets/kafka/certs/ca.crt
+  KAFKA_USER_CERT_PATH: /usr/secrets/kafka/certs/user.crt
+  KAFKA_USER_KEY_CERT_PATH: /usr/secrets/kafka/certs/user.key
